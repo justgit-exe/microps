@@ -9,6 +9,9 @@ LiquidCrystal lcd (8, 9, 4, 5, 6, 7) ;
 
 int pozicijaX, pozicijaY;
 int button_old, button_new;
+unsigned long time_new, time_old;
+
+int stanje;
 
 byte smajli[8] {
   B00000,
@@ -30,36 +33,68 @@ void setup() {
 
   pozicijaX = 0;
   pozicijaY = 0;
+
+  time_new = millis();
+  time_old = millis();
+
 }
 
 void loop() {
+  time_new = millis();
   button_new = ocitaj_taster();
-  if (button_new != button_old) {
-    Serial.println(button_new);
-    delay(30);
-    if (button_new == UP && pozicijaY == 1) {
-      pozicijaY = 0;
-    }
 
-    else if (button_new == DOWN && pozicijaY == 0) {
-      pozicijaY = 1;
-    }
-
-    else if (button_new == LEFT && pozicijaX != 0) {
-      pozicijaX--;
-    }
-    
-    else if (button_new == RIGHT && pozicijaX != 15) {
-      pozicijaX++;
-    }
-
-    lcd.clear(); //za svaki novi ispis se proslo izbrise
-    lcd.setCursor(pozicijaX, pozicijaY);
-    lcd.write(byte(0));
-    
-    button_old = button_new;
+  if (button_new != button_old && button_new != 0) {
+    stanje = button_new;
   }
 
+    button_old = button_new;
+  switch(stanje) {
+    case UP:
+      if (pozicijaY == 1) {
+        pozicijaY = 0;
+        lcd.clear();
+      }
+    break;
+
+    case DOWN:
+      if (pozicijaY == 0) {
+        pozicijaY = 1;
+        lcd.clear();
+      }
+    break;
+
+    case RIGHT:
+      if (time_new - time_old >= 500) {
+        if (pozicijaX == 15) {
+          pozicijaX = 0;
+        }
+        else if (pozicijaX < 15) {
+          pozicijaX++;
+        }
+        time_old = time_new;
+        lcd.clear();
+      }
+    break;
+
+    case LEFT:
+      if (time_new - time_old >= 500) {
+        if (pozicijaX == 0) {
+          pozicijaX = 15;
+        }
+        else if (pozicijaX > 0) {
+          pozicijaX--;
+        }
+        time_old = time_new; 
+        lcd.clear();
+      }
+    break;
+
+    default:
+    break;
+  }
+    
+  lcd.setCursor(pozicijaX, pozicijaY);
+  lcd.write(byte(0));
 }
 
 byte ocitaj_taster()
